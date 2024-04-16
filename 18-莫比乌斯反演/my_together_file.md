@@ -1,0 +1,371 @@
+
+
+## 900D. Unusual Sequences（莫比乌斯反演）
+
+
+##### 题目链接：[传送门](https://codeforces.com/contest/900/problem/D)
+
+
+##### 题意：
+
+
+给出 $x$ 和 $y$ ,求序列形如 $a_1,a_2..a_n$ 满足 $gcd(a_1,a_2...a_n)=1$ 且 $\sum_{i=1}^na_i=y$ 的序列的个数。( $n$ 没有约束)
+
+#### 思路：
+
+
+令$b_i=a_i$，我们很容易知道问题可以转化为$\sum_{i=1}^{n} b_i=\frac{y}{x},gcd(b_1,b_2...b_n)=1$。
+
+我们用$f(n)$ 表示序列和为 $n$ , $gcd(b_1,b_2...b_n)=1$的序列的个数。$g(n)$表示序列和为 $n$ 的序列的个数。
+
+对于$g(n)​$，我们用隔板法可知,$g(n)=C_{n-1}^{0}+C_{n-1}^{1}...+C_{n-1}^{n-1}=2^{n-1}​$，且序列的所有可能的 $gcd​$ 都是 $n​$ 的约数，所以
+
+
+
+$$g(n)=\sum_{d|n}f(n/d)​$$
+
+
+
+我们用莫比乌斯反演可将之转化为
+
+
+
+$$f(n)=\sum_{d|n}mu(d)*g(n/d)$$
+
+
+
+所以我们只需筛出n的所有约数的莫比乌斯函数，然后遍历求出$f(n)$即可
+
+代码：
+
+```cpp
+#include<bits/stdc++.h>
+#define mse(a,b) memset(a,b,sizeof(a))
+using namespace std;
+typedef long long ll;
+const int N=1e5+10;
+const ll mod=1e9+7;
+//把n的约束的莫比乌斯反演反演函数的值使用map的形式返回.O(sqrt(n))
+map<int,int> moebius(int n)
+{
+    map<int,int> res;
+    vector<int> primes;
+    for(int i=2; i*i<=n; ++i)
+    {
+        if(n%i==0)
+        {
+            primes.push_back(i);
+            while(n%i==0) n/=i;
+        }
+    }
+    if(n!=1) primes.push_back(n);
+    int m=primes.size();
+    for(int i=0; i< (1<<m) ; ++i)
+    {
+        int mu=1,d=1;
+        for(int j=0; j<m; ++j)
+        {
+            if(i >>j & 1){
+                mu*=-1;
+                d*=primes[j];
+            }
+        }
+        res[d]=mu;
+    }
+    return res;
+}
+ll qpow(ll a,ll b)
+{
+    ll ans=1;
+    while(b)
+    {
+        if(b&1)
+            ans=ans*a%mod;
+        a=a*a%mod;
+        b>>=1;
+    }
+    return ans;
+}
+int g(ll n)
+{
+    return (int)qpow(2,n-1);
+}
+ll f(int n)
+{
+    map<int,int> mu;
+    mu=moebius(n);
+    int ans=0;
+    for(auto it=mu.begin();it!=mu.end();++it)
+    {
+        ans += it->second * (g( n / it->first));
+        ans=(ans%mod+mod)%mod;
+    }
+    return ans;
+}
+int main()
+{
+    int x,y;
+    cin>>x>>y;
+    if(y%x!=0)
+        cout<<0<<endl;
+    else
+        cout<<f(y / x)<<endl;
+}
+
+```
+
+
+
+
+## 欧拉，素数，莫比乌斯反演函数筛法
+
+
+## 
+
+
+此筛法依据原理：每个合数肯定能被自己的最小素因子筛到，即val=素数*数。若没被筛到则为素数
+
+```cpp
+#include<cstdio>
+#include<algorithm>
+#include<string>
+#include<cstring>
+#include<iostream>
+#include<iomanip>
+#include<stack>
+#include<vector>
+#define mset(a,b)   memset(a,b,sizeof(a))
+using namespace std;
+typedef unsigned long long ull;
+typedef long long ll;
+const int maxn=100000;
+const int branch=26;
+const int inf=0x3f3f3f3f;
+const int MOD=10007;
+bool check[maxn+10];
+int prime[maxn+10],mu[maxn+10];
+int phi[maxn+10];
+void init()//欧拉 素数 莫比乌斯反演函数
+{
+    mset(check,0);
+    mu[1]=1;
+    phi[1]=1;
+    int tot=0;
+    for(int i=2;i<=maxn;++i)
+    {
+        if(!check[i])
+        {
+            prime[tot++]=i;
+            phi[i]=i-1;
+            mu[i]=-1;
+        }
+        for(int j=0;j<tot;j++)
+        {
+            if(i*prime[j]>maxn) break;
+            check[i*prime[j]]=true;
+            if(i%prime[j]==0)
+            {
+                mu[i*prime[j]]=0;
+                phi[i*prime[j]]=phi[i]*prime[j];
+                break;
+            }
+            else
+            {
+                mu[i*prime[j]]=-mu[i];
+                phi[i*prime[j]]=phi[i]*phi[prime[j]];//积性函数的性质
+            }
+        }
+    }
+}
+```
+
+
+
+
+### I - GCD(莫比乌斯反演/欧拉函数，HDU1695)
+
+
+Given 5 integers: a, b, c, d, k, you’re to find x in a…b, y in c…d that GCD(x, y) = k. GCD(x, y) means the greatest common divisor of x and y. Since the number of choices may be very large, you’re only required to output the total number of different number pairs. Please notice that, (x=5, y=7) and (x=7, y=5) are considered to be the same.
+
+**Yoiu can assume that a = c = 1 in all test cases.**
+
+**Input**
+
+The input consists of several test cases. The first line of the input is the number of the cases. There are no more than 3,000 cases. Each case contains five integers: a, b, c, d, k, 0 < a <= b <= 100,000, 0 < c <= d <= 100,000, 0 <= k <= 100,000, as described above.
+
+**Output**
+
+For each test case, print the number of choices. Use the format in the example.
+
+**Sample Input**
+
+```bash
+2
+1 3 1 5 1
+1 11014 1 14409 9
+```
+
+
+**Sample Output**
+
+```bash
+Case 1: 9
+Case 2: 736427
+
+
+        
+  
+```
+
+
+Hint
+
+```bash
+For the first sample input, all the 9 pairs of numbers are (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (2, 3), (2, 5), (3, 4), (3, 5).
+        
+ 
+```
+
+
+**题意：**
+
+t组输入，每组输出4个数 a,b,c,d,k. 让你求x在[a,b],y在[c,d]且gcd(x,y)=k的对数，不算顺序（即(5,10)和(10,5)算同一组）
+
+还有一个很重要的一点 题目保证a=c=1（你说这还输入a，c干啥呢，又想卡我输入时间？）
+
+**分析：**
+
+题目转化为求[1,b],[1,d]区间gcd（x,y）=k的对数，即[1,b/k]与[1,d/k]区间互质的对数
+
+至于重复的对数在最后的时候减去就行了，所以现在的主要问题转化为是怎么求区间[1,a]与[1,b]互质的对数
+
+可以地方可以选择用容斥定理，也可以选择用莫比乌斯反演，当然后者是O(n)的复杂度且常数项为1，比前者快,这里选择用莫比乌斯反演定理。
+
+**我们设f(n)为区间[1,a]与[1,b] gcd(x,y)=n的的对数**，但是f(n)不好求啊，咋办呢？
+
+莫比乌斯反演定理就是原函数的关于n的倍数的函数的和或者关于n的作为一个约数的函数的和好求时，咱们可以利用反演公式。
+
+**这里令F(n)为区间[1,a]与[1,b]中 gcd（x,y）为n的倍数的对数**，那么
+
+
+
+$$F(n)=\sum _{n|d}f(d)$$
+
+
+
+这里F(n)比较好求为
+
+$$F(n)=(a/n)*(b/n)$$
+
+
+
+所以我们使用反演形式二的定理求出f(n)
+
+
+
+$$f(n)=\sum _{n|d}mu[d/n]*F(d),mu[i]为莫比乌斯函数$$
+
+
+
+就是这么的神奇！(只要公式在，我什么都不怕(●’◡’●)(但是确实难推啊！))
+
+所以我想求互质那么
+
+
+
+$$f(1)=\sum ^a_{d=1}mu[d]*((a/d)*(b/d))$$
+
+
+
+最后的时候千万不要忘记减去重复的区间哦！
+
+```cpp
+#include<cstdio>
+#include<algorithm>
+#include<string>
+#include<cstring>
+#include<iostream>
+#include<iomanip>
+#include<stack>
+#include<vector>
+#define mset(a,b)   memset(a,b,sizeof(a))
+using namespace std;
+typedef unsigned long long ull;
+typedef long long ll;
+const int maxn=100000;
+const int branch=26;
+const int inf=0x3f3f3f3f;
+const int MOD=10007;
+bool check[maxn+10];
+int prime[maxn+10],mu[maxn+10];
+void init()
+{
+    mset(check,0);
+    mu[1]=1;
+    int tot=0;
+    for(int i=2;i<=maxn;++i)
+    {
+        if(!check[i])
+        {
+            prime[tot++]=i;
+            mu[i]=-1;
+        }
+        for(int j=0;j<tot;j++)
+        {
+            if(i*prime[j]>maxn) break;
+            check[i*prime[j]]=true;
+            if(i%prime[j]==0)
+            {
+                mu[i*prime[j]]=0;
+                break;
+            }
+            else
+            {
+                mu[i*prime[j]]=-mu[i];
+            }
+        }
+    }
+}
+ll solve(ll a,ll b)//求1~a,1~b中互质的对数
+{
+    ll minn=min(a,b);
+    ll ans=0;
+    for(ll i=1;i<=minn;++i)
+    {
+        ans+=mu[(int)i]*(a/i)*(b/i);
+    }
+    return ans;
+}
+int main()
+{
+    int t;
+    init();
+    ll a,b,c,d,k;
+    int cas=0;
+    scanf("%d",&t);
+    while(t--)
+    {
+        scanf("%lld %lld %lld %lld %lld",&a,&b,&c,&d,&k);
+        if(k==0)
+        {
+            printf("Case %d: 0\n",++cas);
+            continue;
+        }
+        b/=k;
+        d/=k;
+        if(b>d)
+        {
+            ll temp=b;
+            b=d;
+            d=temp;
+        }
+        ll ans=0;
+        ans=solve(b,d);
+        ans-=solve(b,b)/2;//减去重复的
+        printf("Case %d: %lld\n",++cas,ans);
+    }
+    return 0;
+}
+```
+
+

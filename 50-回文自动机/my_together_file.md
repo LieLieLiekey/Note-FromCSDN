@@ -1,0 +1,408 @@
+
+
+#### 题目链接：[ 传送门](https://nanti.jisuanke.com/t/41389)
+
+
+#### 题意：
+
+
+一个字符串的价值为其字符串中出现字符的种类个数，现在给你一个字符串S，求S中所有回文串的价值。
+
+#### 思路：
+
+
+我们可以构建一颗回文树，并且在构建过程记录每个回文串节点中字符种类个数。最后遍历所有不同的回文串节点统计和即可。 代码：
+
+```cpp
+#include <bits/stdc++.h>
+#define mset(a,b) memset(a,b,sizeof(a))
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> P;
+const int N=3e5+10;
+struct PA_tree
+{
+   
+    static const int branch=26;
+    static const int MAXN=3e5+10;
+    struct Node //每个节点代表一个回文串
+    {
+   
+        ll len,cnt;//回文串的长度,回文串出现次数
+        int next[branch],fail;
+        int book[branch],dif;
+        //next[c]:该节点左右增加字符c的回文串节点位置,默认为0
+        //fail :该节点非本身的最长回文后缀节点
+    } node[MAXN];
+    int ls,top=0;//长度,此时使用的节点个数
+    char *s;//字符首指针,下标从1开始
+    int initnode(int id)//需要手动初始化fail和len
+    {
+   
+        node[id].cnt=0;
+        mset(node[id]```
+
+
+
+
+#### 题目链接：[传送门](https://codeforces.com/gym/100548)
+
+
+#### 题意：
+
+
+给出两个字符串A，B。求A的所有回文串在B中出现次数的和。
+
+#### 思路：
+
+
+我们可以分别对A，B字符串构建一颗回文树，根据回文树的结构，我们可以同时遍历两个回文树都有的回文串节点，然后计算贡献即可。 代码：
+
+```cpp
+#include <bits/stdc++.h>
+#define mset(a,b) memset(a,b,sizeof(a))
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> P;
+const int N=2e5+100;
+struct PA_tree
+{
+    static const int branch=26;
+    static const int MAXN=2e5+100;
+    struct Node //每个节点代表一个回文串
+    {
+        int len;//回文串的长度,
+        ll cnt;//回文串出现次数
+        int next[branch],fail;
+        //next[c]:该节点左右增加字符c的回文串节点位置,默认为0
+        //fail :该节点非本身的最长回文后缀节点
+    } node[MAXN];
+    int ls,top=0;//长度,此时使用的节点个数
+    char *s;//字符首指针,下标从1开始
+    int initnode(int id)//需要手动初始化fail和len
+    {
+        node[id].cnt=0;
+        mset(node[id].next,0);
+        return id;
+    }
+    int getfail(int last,int i)
+    {
+        while(s[i-node[last].len-1]!=s[i]) last=node[last].fail;
+        return last;
+    }
+    void init(char *s,int ls)
+    {
+        this->s=s;
+        this->ls=ls;
+        top=0;
+        initnode(top++);
+        initnode(top++);
+        node[0].fail=node[1].fail=1;
+        node[0].len=0,node[1].len=-1;
+        s[0]=-1;
+    }
+    int gv(char c)
+    {
+        return c-'a';
+    }
+    void bulid_tree()
+    {
+        //目标,构建fail指针并生成回文树
+        int last=0;
+        for(int i=1; i<=ls; ++i)
+        {
+ 
+            int c=gv(s[i]);
+            int cur=getfail(last,i);
+            int now=node[cur].next[c];
+ 
+            if(!now)
+            {
+                now=initnode(top++);//新建一个新的节点作为儿子
+                node[now].len=node[cur].len+2;
+                node[now].fail=node[getfail(node[cur].fail,i)].next[c];
+                node[cur].next[c]=now;
+            }
+//            printf("c:%d,cur:%d,now:%d\n",c,cur,now);
+            node[now].cnt++;
+            last=now;
+        }
+    }
+    void count()
+    {
+        //基于fail的节点标号一定比自身小,所以我们倒着累加
+        for(int i=top-1; i; --i)
+            node[node[i].fail].cnt+=node[i].cnt;
+    }
+ 
+};
+char s1[N],s2[N];
+PA_tree pa1,pa2;
+ll res=0;
+void dfs(int a,int b)
+{
+    if(a!=0&&a!=1)
+        res+=(pa1.node[a].cnt)*(pa2.node[b].cnt);
+    for(int i=0;i<26;++i){
+        if(pa1.node[a].next[i]!=0&&pa2.node[b].next[i]!=0){
+            dfs(pa1.node[a].next[i],pa2.node[b].next[i]);
+        }
+    }
+    return ;
+}
+void solve()
+{
+    dfs(1,1);
+    dfs(0,0);
+}
+int main()
+{
+    ios::sync_with_stdio(false);cin.tie(0);
+    int t,cas=0;
+    cin>>t;
+    while(t--)
+    {
+        cin>>(s1+1)>>(s2+1);
+//        scanf("%s%s",s1+1,s2+1);
+        int ls1=strlen(s1+1),ls2=strlen(s2+1);
+        pa1.init(s1,ls1);pa2.init(s2,ls2);
+        pa1.bulid_tree();
+ 
+        pa2.bulid_tree();
+        pa1.count();
+        pa2.count();
+        res=0;
+        solve();
+        cout<<"Case #"<<++cas<<": "<<res<<endl;
+//        printf("Case #%d: %lld\n",++cas,res);
+    }
+    return 0;
+}
+```
+
+
+
+
+## 回文树/回文自动机小结
+
+
+
+bilibili视频链接:[https://www.bilibili.com/video/av25326779?from=search&seid=4331486820600953253](https://www.bilibili.com/video/av25326779?from=search&seid=4331486820600953253)
+
+学习博客链接：<https://blog.csdn.net/u013368721/article/details/42100363
+
+建议先看视频了解再看博客学习。
+
+以下博文目的仅供自己参考复习。
+
+
+​ 回文自动机是一个两颗树的森林，两棵树的根分别代表偶长度回文字符串节点树的根，和奇长度回文字符串节点树的根，**其中每个不同节点都代表一个不同的回文字符串**，经过证明得出长度为$n​$，字符种类为 $k​$ 的字符串中回文串的种类是$O(n*log(k))​$级的。
+
+​ 每个回文字符串节点的信息有len，cnt，next[]，fail。其中len代表该回文串的长度，cnt为该回文串出现次数，next[i]，表示该字符串两端扩展字符i的节点索引，0为无效值。fail代表该回文串的非本身最长回文后缀的节点索引。**回文串$a​$两端加上字符 $i​$ 所代表的回文串**在回文树中代表节点 $a​$ 的 $next[i]​$ 所指向的节点。
+
+​ 初始时让节点0代表长度为0的回文串，fail的值为1。让节点1代表长度为-1的回文串，fail的值为1，这里的-1只是方便以后的计算，没有实际意义。
+
+​ 遍历第$i$个字符求以$i$结尾的最长回文字符串时。我们设last为第$i-1$个字符结尾的最长回文字符串代表的节点，now第$i$个字符求以$i$结尾的最长回文字符串代表的节点。那么求now我们将利用last和last的fail，求now的fail将用last的fail。
+
+​ 构建后的回文树包含原字符串中所有回文串的信息，和该回文串在原字符串中的出现次数。也构建出了回文串之间的关系。
+
+**模板:**
+
+```cpp
+#include <bits/stdc++.h>
+#define mset(a,b) memset(a,b,sizeof(a))
+using namespace std;
+typedef long long ll;
+const int N=3e5+10;
+struct PA_tree
+{
+    static const int branch=26;
+    static const int MAXN=3e5+10;
+    struct Node //每个节点代表一个回文串
+    {
+        int len;//回文串的长度
+        ll cnt;//回文串出现次数
+        int next[branch],fail;
+        //next[c]:该节点左右增加字符c的回文串节点位置,默认为0
+        //fail :该节点非本身的最长回文后缀节点
+    } node[MAXN];
+    int ls,top=0;//长度,此时使用的节点个数
+    char *s;//字符首指针,下标从1开始
+    int initnode(int id)//需要手动初始化fail和len
+    {
+        node[id].cnt=0;
+        mset(node[id].next,0);
+        return id;
+    }
+    int getfail(int last,int i)//从last以及其fail开始找字符s[i]的最长回文后缀的位置
+    {
+        while(s[i-node[last].len-1]!=s[i]) last=node[last].fail;
+        return last;
+    }
+    void init(char *s,int ls)
+    {
+        this->s=s;
+        this->ls=ls;
+        top=0;
+        initnode(top++);
+        initnode(top++);
+        node[0].fail=node[1].fail=1;
+        node[0].len=0,node[1].len=-1;
+        s[0]=-1;
+    }
+    int gv(char c)//计算每个字符的映射值
+    {
+        return c-'a';
+    }
+    void bulid_tree()
+    {
+        //目标,构建fail指针并生成回文树
+        int last=0;
+        for(int i=1; i<=ls; ++i)
+        {
+
+            int c=gv(s[i]);
+            int cur=getfail(last,i);//得到该位置的最长回文后缀字符串节点的父亲
+            int now=node[cur].next[c];
+            if(!now)//如果还没有该节点,就新建一个
+            {
+                now=initnode(top++);//新建一个新的节点作为该节点索引
+                node[now].len=node[cur].len+2;
+                node[now].fail=node[getfail(node[cur].fail,i)].next[c];
+                node[cur].next[c]=now;
+            }
+            node[now].cnt++;
+            last=now;
+        }
+    }
+    void calc_count()//计算每回文串在字符串中的出现次数
+    {
+        //基于fail的节点标号一定比自身小,所以我们倒着累加
+        for(int i=top-1; i; --i)
+            node[node[i].fail].cnt+=node[i].cnt;
+    }
+
+};
+char s[N];
+PA_tree solve;
+int main()
+{
+    scanf("%s",s+1);
+    int ls=strlen(s+1);
+    solve.init(s,ls);
+    solve.bulid_tree();
+    solve.calc_count();
+    //根据题目要求:  	   
+    //剩下的可以对节点进行操作,或者在构建回文串节点时增加信息
+    return 0;
+}
+```
+
+
+**模板题 :** [洛谷[APIO2014]回文串](https://www.luogu.org/problem/P3649)
+
+题意：计算所有不同回文串的长度* 出现次数的和.
+
+代码：
+
+```cpp
+#include <bits/stdc++.h>
+#define mset(a,b) memset(a,b,sizeof(a))
+using namespace std;
+typedef long long ll;
+typedef pair<int,int> P;
+const int N=3e5+10;
+struct PA_tree
+{
+    static const int branch=26;
+    static const int MAXN=3e5+10;
+    struct Node //每个节点代表一个回文串
+    {
+        ll len,cnt;//回文串的长度,回文串出现次数
+        int next[branch],fail;
+        //next[c]:该节点左右增加字符c的回文串节点位置,默认为0
+        //fail :该节点非本身的最长回文后缀节点
+    } node[MAXN];
+    int top=0;//此时使用的节点个数
+    char *s;//字符首指针,下标从1开始
+    int ls;//长度
+    int initnode(int id)//需要手动初始化fail和len
+    {
+        node[id].cnt=0;
+        mset(node[id].next,0);
+        return id;
+    }
+    int getfail(int last,int i)
+    {
+        while(s[i-node[last].len-1]!=s[i]) last=node[last].fail;
+        return last;
+    }
+    void init(char *s,int ls)
+    {
+        this->s=s;
+        this->ls=ls;
+        top=0;
+        initnode(top++);
+        initnode(top++);
+        node[0].fail=node[1].fail=1;
+        node[0].len=0,node[1].len=-1;
+        s[0]=-1;
+    }
+    int gv(char c)
+    {
+        return c-'a';
+    }
+    void bulid_tree()
+    {
+        //目标,构建fail指针并生成回文树
+        int last=0;
+        for(int i=1; i<=ls; ++i)
+        {
+
+            int c=gv(s[i]);
+            int cur=getfail(last,i);
+            int now=node[cur].next[c];
+            if(!now)
+            {
+                now=initnode(top++);//新建一个新的节点作为儿子
+                node[now].len=node[cur].len+2;
+                node[now].fail=node[getfail(node[cur].fail,i)].next[c];
+                node[cur].next[c]=now;
+            }
+            node[now].cnt++;
+            last=now;
+        }
+    }
+    ll count()
+    {
+        //基于fail的节点标号一定比自身小,所以我们倒着累加
+        ll ans=0;
+        for(int i=top-1; i; --i)
+        {
+            node[node[i].fail].cnt+=node[i].cnt;
+            ans=max(ans,node[i].len*node[i].cnt);
+        }
+        return ans;
+    }
+
+};
+char s[N];
+PA_tree solve;
+int main()
+{
+    scanf("%s",s+1);
+    int ls=strlen(s+1);
+    solve.init(s,ls);
+    solve.bulid_tree();
+    printf("%lld\n",solve.count());
+    return 0;
+}
+```
+
+
+回文串其他题目：
+
+[计蒜客: Colorful String](https://nanti.jisuanke.com/t/41389)
+
+[2014-2015 ACM-ICPC, Asia Xian Regional Contest](https://codeforces.com/gym/100548)]
+
