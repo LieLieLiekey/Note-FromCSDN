@@ -12,7 +12,7 @@
 
 第一种最容易理解，而第二种代码风格最简洁。
 
-第一种的kuangbin代码
+第一种的 kuangbin 代码
 
 ```cpp
 
@@ -163,7 +163,9 @@ vector<Point> convex_hull(Point *ps,int n)
     }
     qs.resize(k-1);
     return qs;
-}```
+}
+
+```
 
 
 自己也实现了一下，基本跟书上差不多，但判断点的转向时有些差异，不过代码效果应该都一样。

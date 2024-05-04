@@ -167,7 +167,8 @@ int main()
 //      for(int i=1;i<=cnt;i++)
 //          printf("dis[%d]=%.2lf\n",i,dis[i]);
       printf("%.0lf\n",dis[2]);
-}```
+}
+```
 
 
 参考博客：[https://www.cnblogs.com/Sunshine-tcf/p/5752027.html](https://www.cnblogs.com/Sunshine-tcf/p/5752027.html)

@@ -39,7 +39,8 @@ Sample Output
 
 ```
 8
-11```
+11
+```
 
 
  
@@ -196,6 +197,7 @@ int main()
         printf("%d\n",prim(cnt));
     }
 }
+
 ```
 
 

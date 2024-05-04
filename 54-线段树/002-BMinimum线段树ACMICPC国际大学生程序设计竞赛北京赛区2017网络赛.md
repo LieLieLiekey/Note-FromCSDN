@@ -1,23 +1,27 @@
+## [B - Minimum](https://vjudge.net/problem/HihoCoder-1586)
 
-
-### [B - Minimum](https://vjudge.net/problem/HihoCoder-1586)
-
+ 
 
 [HihoCoder - 1586 ](https://vjudge.net/problem/1087342/origin)
 
-题意： 一段序列支持两种操作：
+题意： 
+一段序列支持两种操作：
 
-+ 1.Output $Min _{x,y∈[l,r]} (ax,ay)$.+ 2.Let $a_x=y$.
-
+- 1.Output $Min _{x,y∈[l,r]} (ax,ay)$.
+- 2.Let $a_x=y$.
 
 思路：
 
-​ 维护区间最大值，最小值即可。假设区间$[l,r]$的中最大值为 $max$和最小值为 $min$ 那么根据其的正负性四种答案有四种可能。
+​	维护区间最大值，最小值即可。假设区间$[l,r]$的中最大值为 $max$和最小值为 $min$ 那么根据其的正负性四种答案有四种可能。
 
-+ max为$+$，min为 $+$. 那么答案$ans=min*min$+ max为$+$，min为 $-$. 那么答案$ans=max*min$+ max为$-$，min为 $+$. 那么答案$ans=max*min$+ max为$-$，min为 $-$. 那么答案$ans=max*max$
++ max为$+$，min为 $+$. 那么答案$ans=min*min$
++ max为$+$，min为 $-$. 那么答案$ans=max*min$
++ max为$-$，min为 $+$. 那么答案$ans=max*min$
++ max为$-$，min为 $-$. 那么答案$ans=max*max$
 
 
-代码：（略丑，请不要介意…）
+
+代码：（略丑，请不要介意...）
 
 ```cpp
 #include<cstdio>
@@ -119,5 +123,3 @@ int main(){
 }
 
 ```
-
-
