@@ -1,50 +1,113 @@
 
 
-## Prufer序列（无根树与序列的互相转化及其性质）
+# Prufer序列（无根树与序列的互相转化及其性质）
+> 学习来自：https://oi-wiki.org/graph/prufer/
 
+## Prüfer 序列
+引入
+Prüfer 序列可以将一个带标号 n 个结点的树用 [1,n] 中的 n-2 个整数表示。你也可以把它理解为完全图的生成树与数列之间的双射。常用组合计数问题中。
 
-##### 什么是Prufer序列？
+Heinz Prüfer 于 1918 年发明这个序列来证明 凯莱公式。
 
+## 对树建立 Prüfer 序列
+Prüfer 是这样建立的：每次选择一个编号最小的叶结点并删掉它，然后在序列中记录下它连接到的那个结点。重复 n-2 次后就只剩下两个结点，算法结束。
 
-Prufer序列是将一个带有节点编号的无根树转化为一个序列的过程，且每一个无根树唯一的确定一个prufer序列。反过来也成立。
+显然使用堆可以做到 O(n\log n) 的复杂度
 
+实现
 
-##### Prufer序列的性质
+```c++
+// 代码摘自原文，结点是从 0 标号的
+vector<vector<int>> adj;
 
+vector<int> pruefer_code() {
+  int n = adj.size();
+  set<int> leafs;
+  vector<int> degree(n);
+  vector<bool> killed(n, false);
+  for (int i = 0; i < n; i++) {
+    degree[i] = adj[i].size();
+    if (degree[i] == 1) leafs.insert(i);
+  }
 
+  vector<int> code(n - 2);
+  for (int i = 0; i < n - 2; i++) {
+    int leaf = *leafs.begin();
+    leafs.erase(leafs.begin());
+    killed[leaf] = true;
+    int v;
+    for (int u : adj[leaf])
+      if (!killed[u]) v = u;
+    code[i] = v;
+    if (--degree[v] == 1) leafs.insert(v);
+  }
+  return code;
+}
+```
 
-+ 原树中顶点 v 的度数 -1 = 序列中顶点 v 的出现次数（du(v) - 1)
-+ n个顶点的无根树的Prufer序列的长度为n-2
-+ 一个Prufer序列与一个无根树一一对应
+例如，这是一棵 7 个结点的树的 Prüfer 序列构建过程：
+![](2024-05-11-19-52-15.png)
 
+当然，也有一个线性的构造算法。
 
+1. 维护 du[u]， 代表 u 的度数
+    - 初始化：通过遍历一遍得到
 
+2. 维护一个指针 p。初始时 p 指向编号最小的度数为 1 的叶结点
 
-##### 将无根树转化为Prufer序列
+每次我们删除 p 指针指向的节点 v 节点时，检查对应的边（v,u）中的 u 节点度数是否变为 1 ，如果变为 1，则进行如下检查
+-  1.1 如果 u < p, 另 pp = u, 然后立刻删除 pp，继续 1.1 阶段（直至 u > p，进入 1.2）
+- 1.2 否则 u > p，则设置 du[u] = 1， 然后逐渐增大 p，直至知道 du(*p) = 1 的节点
 
+因为 p 只会增大，不会递减，并且 每个节点只会删除一次, 时间复杂度是 O(n)
 
-**方法：**
+详细解释继续看 blog
 
-一棵树要得到普吕弗序列，方法是逐次去掉树的顶点，直到剩下两个顶点。考虑树*T*，其顶点为{1, 2, …, *n*}。在第*i*步，去掉标号最小的叶，并把普吕弗序列的第*i*项设为这叶的邻顶点的标号。
+## Prüfer 序列的性质
+1. 在构造完 Prüfer 序列后原树中会剩下两个结点，其中一个一定是编号最大的点 n。
+2. 每个结点在序列中出现的次数是其度数减 1。（没有出现的就是叶结点）
 
-一棵树的序列明显是唯一的，而且长为*n* − 2。
+## 用 Prüfer 序列重建树
+重建树的方法是类似的。根据 Prüfer 序列的性质，我们可以得到原树上每个点的度数。然后你也可以得到编号最小的叶结点，而这个结点一定与 Prüfer 序列的第一个数连接。然后我们同时删掉这两个结点的度数。
 
-**算法：**
+讲到这里也许你已经知道该怎么做了。每次我们选择一个度数为 1 的最小的结点编号，与当前枚举到的 Prüfer 序列的点连接，然后同时减掉两个点的度。到最后我们剩下两个度数为 1 的点，其中一个是结点 n。就把它们建立连接。使用堆维护这个过程，在减度数的过程中如果发现度数减到 1 就把这个结点添加到堆中，这样做的复杂度是 O(n\log n) 的。
 
-**使用的数据结构**：维护一个度数为1的set集合即可.
+实现
+```c++
+// 原文摘代码
+vector<pair<int, int>> pruefer_decode(vector<int> const& code) {
+  int n = code.size() + 2;
+  vector<int> degree(n, 1);
+  for (int i : code) degree[i]++;
 
+  set<int> leaves;
+  for (int i = 0; i < n; i++)
+    if (degree[i] == 1) leaves.insert(i);
 
-+ 初始度数为1的集合（所有叶子）.
-+ 每次从度数为1的叶子顶点集合中找到编号最小的顶点u，并将其从度数为1的集合中删去。将u连接的顶点v加入prufer序列，删除u连接的所有边。
-+ 更新u和v的度数，v的度数为1则加入度数为1的集合。
-+ 当加入序列的数的个数为n-2时候停止。否则返回到第二步。
+  vector<pair<int, int>> edges;
+  for (int v : code) {
+    int leaf = *leaves.begin();
+    leaves.erase(leaves.begin());
 
+    edges.emplace_back(leaf, v);
+    if (--degree[v] == 1) leaves.insert(v);
+  }
+  edges.emplace_back(*leaves.begin(), n - 1);
+  return edges;
+}
 
+```
 
-**具体实现：**
+## Cayley 公式 (Cayley's formula)
+完全图 $ K_n $  有 $ n^{n-2} $ 棵生成树。
 
+怎么证明？方法很多，但是用 Prüfer 序列证是很简单的。任意一个长度为 n-2 的值域 [1,n] 的整数序列都可以通过 Prüfer 序列双射对应一个生成树，于是方案数就是 $n^{n-2}$。
 
-时间复杂度为O(nlogn)。代码经过自己的部分测试是正确的，若有人发现bug请在评论区指出，我将尽快进行修改
+图连通方案数
+Prüfer 序列可能比你想得还强大。它能创造比 凯莱公式 更通用的公式。比如以下问题：
+
+一个 n 个点 m 条边的带标号无向图有 k 个连通块。我们希望添加 k-1 条边使得整个图连通。求方案数。
+
 
 
 ```cpp
